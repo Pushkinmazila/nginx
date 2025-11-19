@@ -1,0 +1,32 @@
+---
+- name: Ensure nginx is installed
+  package:
+    name: nginx
+    state: present
+
+- name: Create backup directory
+  file:
+    path: "{{ nginx_backup_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Backup current nginx config if it exists
+  copy:
+    src: "{{ nginx_config_path }}"
+    dest: "{{ nginx_backup_dir }}/nginx.conf.{{ ansible_date_time.iso8601 }}"
+    remote_src: yes
+  when: nginx_config_path is defined and nginx_config_path != ''
+
+- name: Deploy nginx config from template
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_config_path }}"
+    mode: '0644'
+  notify:
+    - test nginx config
+
+- name: Ensure nginx is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes
