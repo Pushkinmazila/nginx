@@ -1,0 +1,10 @@
+---
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: test nginx config
+  command: nginx -t
+  notify: restart nginx
+  changed_when: false
